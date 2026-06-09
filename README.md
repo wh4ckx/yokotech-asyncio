@@ -13,8 +13,8 @@ Un worker doit télécharger 5 fichiers depuis un stockage distant. Il a été �
 
 ## Prérequis
 
-- **Python 3.7+** suffit si vous faites le TODO 1 avec `asyncio.gather`.
-  **Python 3.11+** si vous voulez utiliser `asyncio.TaskGroup` (version moderne, montrée en live).
+- **Python 3.11+** pour les fichiers de solution `etape_*.py` (qui utilisent `asyncio.TaskGroup`).
+  Pour l'exo, `asyncio.gather` suffit et marche dès Python 3.7+.
 - Aucune dépendance externe (stdlib uniquement)
 
 ## Setup (30 secondes)
@@ -30,7 +30,7 @@ uv run worker_broken.py   # uv installe Python 3.13 (cf. .python-version) et lan
 Sans uv (Python système) :
 
 ```bash
-python3 --version         # doit afficher >= 3.11 pour worker_solution.py
+python3 --version         # doit afficher >= 3.11 pour les fichiers etape_*.py
 python3 worker_broken.py
 ```
 
@@ -50,7 +50,7 @@ Ouvrez `worker_broken.py` et corrigez les 3 TODO **dans l'ordre** :
 Faites tourner les 5 `process_message` en concurrence. Deux options selon votre version de Python :
 
 ```python
-# asyncio.TaskGroup (Python 3.11+) — c'est ce qu'utilise worker_solution.py
+# asyncio.TaskGroup (Python 3.11+) — c'est ce qu'utilisent les fichiers etape_*.py
 async with asyncio.TaskGroup() as tg:
     for key in MESSAGES:
         tg.create_task(...)
@@ -87,7 +87,21 @@ async def bounded(key):
 
 ## Solution
 
-La correction (les 3 étapes commentées) est présentée **en live pendant le Yokotech**. Jouez d'abord avec les TODO de votre côté — c'est en faisant le TODO 1 seul et en constatant que *rien ne change* que la leçon s'imprime.
+La correction est découpée en 3 fichiers indépendants, à lancer **un par un** dans l'ordre :
+
+```bash
+uv run etape_1_taskgroup.py   # le piège : ~15s, heartbeats sautent (RIEN ne change)
+uv run etape_2_to_thread.py   # la vraie solution : ~3-4s, heartbeats OK
+uv run etape_3_semaphore.py   # bonus : Semaphore(2), ~7-10s, heartbeats OK
+```
+
+Chaque fichier mirrore `worker_broken.py` : le `diff` montre exactement ce qui change.
+
+```bash
+diff worker_broken.py etape_1_taskgroup.py   # ajouter TaskGroup
+diff etape_1_taskgroup.py etape_2_to_thread.py   # +to_thread → toute la leçon en 1 ligne
+diff etape_2_to_thread.py etape_3_semaphore.py   # +Semaphore
+```
 
 ## Ce que vous devriez retenir
 
